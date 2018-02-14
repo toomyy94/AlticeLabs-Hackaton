@@ -6,6 +6,9 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tomasrodrigues.pt.alticelabs.R;
 
 /**
@@ -15,7 +18,9 @@ import tomasrodrigues.pt.alticelabs.R;
  */
 public class LauncherActivity extends AppCompatActivity {
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(LauncherActivity.class);
     private static final int SECONDS_DELAYED = 1;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
