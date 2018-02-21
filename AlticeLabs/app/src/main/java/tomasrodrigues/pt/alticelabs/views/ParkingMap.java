@@ -1,8 +1,12 @@
 package tomasrodrigues.pt.alticelabs.views;
 
-import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -12,23 +16,31 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tomasrodrigues.pt.alticelabs.R;
+import tomasrodrigues.pt.alticelabs.parking.ParkingPlace;
 
 public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ParkingMap.class);
+    public final static int CAMERA_ZOOM = 19;
+    public final static int NUMBER_ALL_PLACES = 50;
+    public final static boolean RESERVED = true;
+    public final static boolean PUBLIC = false;
 
     //Fill AlticeLabs Center & bounds
-    private LatLng alticeLabsCenter = new LatLng(40.6297, -8.6466);
-    private LatLng alticePortoCenter = new LatLng(41.1631827,-8.6395207);
-    private LatLng alticeSFRCenter = new LatLng(48.9212938, 2.3534601);
-    private float radius = 0.001f;
+    public static final LatLng alticeLabsCenter = new LatLng(40.6297, -8.6466);
+    public static final LatLng alticePortoCenter = new LatLng(41.1631827,-8.6395207);
+    public static final LatLng alticeSFRCenter = new LatLng(48.9212938, 2.3534601);
+    public static final float radius = 0.001f;
 
     private GoogleMap mMap;
     private Spinner campusSpinner;
@@ -43,6 +55,7 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
 
         campusSpinner =  findViewById(R.id.campus_spinner);
+
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.campus_array, android.R.layout.simple_spinner_item);
@@ -67,27 +80,24 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(new LatLng(alticeLabsCenter.latitude-radius, alticeLabsCenter.longitude-radius));
-        builder.include(new LatLng(alticeLabsCenter.latitude+radius, alticeLabsCenter.longitude+radius));
-        LatLngBounds bounds = builder.build();
-
-        //move camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(alticeLabsCenter, 19));
-
-        //Constrain the camera target to the Altice bounds.
-        mMap.setLatLngBoundsForCameraTarget(bounds);
+        addInitialParkingPlaces();
 
         //No Zoom buttons
         mMap.getUiSettings().setZoomGesturesEnabled(false);
         mMap.getUiSettings().setRotateGesturesEnabled(false);
-
-        addParkingPlaces();
     }
 
-    public void addParkingPlaces(){
-        //mMap.addMarker(new MarkerOptions().position(alticeLabsCenter).title("Marker in Altice Labs"));
+    public void goToCampus(LatLng campus){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(new LatLng(campus.latitude-radius, campus.longitude-radius));
+        builder.include(new LatLng(campus.latitude+radius, campus.longitude+radius));
+        LatLngBounds campusBounds = builder.build();
 
+        //Constrain the camera bounds.
+        mMap.setLatLngBoundsForCameraTarget(campusBounds);
+
+        //move camera
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(campus, CAMERA_ZOOM));
     }
 
     private class mySpinnerListener implements AdapterView.OnItemSelectedListener {
@@ -101,16 +111,16 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 
             switch (position){
                 case CAMPUS_ALTICE_LABS:
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(alticeLabsCenter, 19));
+                    goToCampus(alticeLabsCenter);
                     break;
                 case CAMPUS_POLO_PORTO:
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(alticePortoCenter, 19));
+                    goToCampus(alticePortoCenter);
                     break;
                 case CAMPUS_SFR:
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(alticeSFRCenter, 19));
+                    goToCampus(alticeSFRCenter);
                     break;
                 default:
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(alticeLabsCenter, 19));
+                    goToCampus(alticeLabsCenter);
                     break;
             }
         }
@@ -121,5 +131,61 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         }
 
     }
+
+    public void addInitialParkingPlaces(){
+        for(int i = 0; i < alticeLabsParkingPlaces.length ; i++) {
+            mMap.addMarker(new MarkerOptions()
+                .position(alticeLabsParkingPlaces[i].getGeo())
+                    .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.car_red_icon_horizontal))
+                        .rotation(alticeLabsParkingPlaces[i].getRotation()) );
+        }
+    }
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    ParkingPlace[] alticeLabsParkingPlaces = {
+            //frente do edificio 0
+            new ParkingPlace(new LatLng(40.629144, -8.646928), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629168, -8.646922), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629191, -8.646924), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629213, -8.646927), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629236, -8.646933), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629259, -8.646934), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629281, -8.646938), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629302, -8.646941), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629324, -8.646947), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629346, -8.646950), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629369, -8.646953), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629389, -8.646953), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629413, -8.646954), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629434, -8.646961), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629458, -8.646961), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629479, -8.646965), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629469, -8.646839), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629447, -8.646831), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629424, -8.646828), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629403, -8.646823), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629376, -8.646817), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629357, -8.646816), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629336, -8.646808), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629313, -8.646805), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629292, -8.646803), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629269, -8.646799), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629246, -8.646796), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629225, -8.646792), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629203, -8.646789), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629181, -8.646785), RESERVED, -7),
+            new ParkingPlace(new LatLng(40.629158, -8.646777), RESERVED, -7),
+
+            //em frente do jardim em frente ao edificio 0
+            //TODO: ...
+    };
 
 }
