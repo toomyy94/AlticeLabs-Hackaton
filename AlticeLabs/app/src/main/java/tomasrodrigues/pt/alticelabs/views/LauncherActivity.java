@@ -21,7 +21,6 @@ public class LauncherActivity extends AppCompatActivity {
     private final static Logger LOGGER = LoggerFactory.getLogger(LauncherActivity.class);
     private static final int SECONDS_DELAYED = 1;
 
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
