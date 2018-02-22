@@ -52,8 +52,6 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
     private TextView text_numberFreePublic;
     private TextView text_numberReservedPublic;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,14 +200,17 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
             Log.d("Nada selecionado", "Nada selecionado");
 
         }
-
     }
 
     public void addInitialParkingPlaces(){
+        int color;
         for(int i = 0; i < ParkingList.parkingPlaces.size() ; i++) {
+            if (ParkingList.parkingPlaces.get(i).isReserved() && ParkingList.parkingPlaces.get(i).isFree()) color = R.drawable.car_blue_icon_horizontal;
+            else if (ParkingList.parkingPlaces.get(i).isFree()) color = R.drawable.car_green_icon_horizontal;
+            else color = R.drawable.car_red_icon_horizontal;
             mMap.addMarker(new MarkerOptions()
                 .position(ParkingList.parkingPlaces.get(i).getGeo())
-                    .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.car_red_icon_horizontal))
+                    .icon(bitmapDescriptorFromVector(getApplicationContext(), color))
                         .rotation(ParkingList.parkingPlaces.get(i).getRotation()) );
         }
     }
@@ -305,6 +306,7 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 //        timer.schedule(doAsynchronousTask, 0,
 //                DateUtils.SECONDS_PERIOD * DateUtils.MILI_TO_SECOND); //execute in every xxxxx ms
 //    }
+//
 //
 //    public class GetAvailableParks extends AsyncTask {
 //

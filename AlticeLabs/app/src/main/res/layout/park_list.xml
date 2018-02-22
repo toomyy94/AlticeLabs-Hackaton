@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="4">
+
+    <TextView
+        android:id="@+id/item_txtReserved"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.1"
+        android:fontFamily="@font/baloo_da"
+        android:padding="@dimen/fab_margin"
+        android:text="Reservado"
+        android:textSize="14sp" />
+
+
+    <ImageView
+        android:id="@+id/item_icon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:layout_alignBottom="@+id/item_txtTimestamp"
+        android:layout_toEndOf="@+id/item_txtReserved"
+        android:layout_marginTop="9dp"
+        android:adjustViewBounds="true"
+        android:foregroundGravity="center"
+        android:maxHeight="@dimen/icon_image_size"
+        android:maxWidth="@dimen/icon_image_size"
+        android:padding="@dimen/fab_margin"
+        android:scaleType="center"
+        android:src="@drawable/car_red_icon_horizontal_medium" />
+
+    <TextView
+        android:id="@+id/item_txtOcuppied"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.1"
+        android:layout_toRightOf="@+id/item_icon"
+        android:fontFamily="@font/baloo_da"
+        android:padding="@dimen/fab_margin"
+        android:text="Ocupado"
+        android:textSize="14sp" />
+
+
+    <TextView
+        android:id="@+id/item_txtTimestamp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.5"
+        android:layout_toRightOf="@+id/item_txtOcuppied"
+        android:fontFamily="@font/baloo_da"
+        android:padding="@dimen/fab_margin"
+        android:textSize="14sp" />
+
+</LinearLayout>

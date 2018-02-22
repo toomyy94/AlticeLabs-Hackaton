@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
@@ -16,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.support.design.widget.Snackbar;
@@ -59,6 +61,7 @@ public class ParkingList extends FragmentActivity {
     Spinner campusSpinner;
     public static TextView text_numberFreePublic;
     public static TextView text_numberFreeReserved;
+    public static ImageView car_icon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +70,7 @@ public class ParkingList extends FragmentActivity {
 
         text_numberFreePublic = findViewById(R.id.number_free_public);
         text_numberFreeReserved = findViewById(R.id.number_free_reserved);
+        car_icon = findViewById(R.id.item_icon);
         campusSpinner =  findViewById(R.id.campus_spinner);
         listView = findViewById(R.id.available_parks);
 
@@ -177,10 +181,11 @@ public class ParkingList extends FragmentActivity {
 
     public void updateParkingPlaces() {
 
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         Timer timer = new Timer();
 
         TimerTask doAsynchronousTask = new TimerTask() {
+
             @Override
             public void run() {
                 handler.post(new Runnable() {
@@ -200,8 +205,7 @@ public class ParkingList extends FragmentActivity {
                             text_numberFreeReserved.setText(String.valueOf(numberFreeReserved));
 
                             //LIST
-                            adapter = new ParkingListAdapter(parkingPlaces, getApplicationContext());
-                            listView.setAdapter(adapter);
+                            adapter.notifyDataSetChanged();
 
                             Log.d("atualizei", "atualizei");
                         } catch (Exception e) {

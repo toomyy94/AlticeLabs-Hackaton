@@ -1,10 +1,13 @@
 package tomasrodrigues.pt.alticelabs.parking;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +51,6 @@ public class ParkingListAdapter extends ArrayAdapter<ParkingPlace> implements Vi
     public void refreshEvents(ArrayList<ParkingPlace> events) {
         this.dataSet.clear();
         this.dataSet.addAll(events);
-        notifyDataSetChanged();
     }
 
     @Override
@@ -99,10 +101,13 @@ public class ParkingListAdapter extends ArrayAdapter<ParkingPlace> implements Vi
         lastPosition = position;
 
         viewHolder.txtIsReserved.setText(textToListReserved(parkingPlace.isReserved()));
+        if (parkingPlace.isReserved() && parkingPlace.isFree()) viewHolder.car.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.car_blue_icon_horizontal_medium));
+        else if (parkingPlace.isFree()) viewHolder.car.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.car_green_icon_horizontal_medium));
+        else viewHolder.car.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.car_red_icon_horizontal_medium));
         viewHolder.car.setOnClickListener(this);
         viewHolder.car.setTag(position);
         viewHolder.txtIsFree.setText(textToListFree(parkingPlace.isFree()));
-        if (parkingPlace.getTimestamp() != 0L) viewHolder.txtTimestamp.setText(DateUtils.convertDateToHoursMinutes(new Date(parkingPlace.getTimestamp())));
+        if (parkingPlace.getTimestamp() != 0L) viewHolder.txtTimestamp.setText(DateUtils.convertDateToHoursMinutes(new Date(parkingPlace.getTimestamp()))+"h");
 
         // Return the completed view to render on screen
         return convertView;

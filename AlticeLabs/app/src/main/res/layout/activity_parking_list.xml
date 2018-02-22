@@ -6,25 +6,19 @@
     tools:context=".views.ParkingList"
     android:weightSum="1">
 
-    <!-- TODO: Update blank fragment layout -->
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/top_banner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/whiteTransparent">
-
         <LinearLayout
+            android:id="@+id/top_banner"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_marginTop="@dimen/padding"
             android:weightSum="3" >
 
             <!-- col 1 -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="0.9"
                 android:orientation="vertical">
 
                 <TextView
@@ -115,7 +109,67 @@
                     android:layout_toRightOf="@+id/available_reserved" />
             </LinearLayout>
         </LinearLayout>
-        <!-- col 3 end -->
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/header_list_title"
+        android:layout_below="@+id/top_banner"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:background="@color/colorBlack"
+        android:weightSum="4">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.1"
+            android:fontFamily="@font/baloo_da"
+            android:gravity="center"
+            android:text="Categoria"
+            android:textAlignment="center"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/estado"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/item_icon"
+            android:layout_weight="1.2"
+            android:fontFamily="@font/baloo_da"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:text="Estado"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_marginLeft="@dimen/fab_margin"
+            android:layout_width="27dp"
+            android:layout_height="27dp"
+            android:layout_toLeftOf="@+id/hora"
+            android:gravity="center"
+            android:maxHeight="@dimen/nav_header_height"
+            android:maxWidth="@dimen/nav_header_height"
+            android:src="@drawable/calendar" />
+
+        <TextView
+            android:id="@+id/hora"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/item_txtOcuppied"
+            android:layout_weight="1.6"
+            android:fontFamily="@font/baloo_da"
+            android:gravity="center"
+            android:text="Data atualização"
+            android:textAlignment="center"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+
 
     </LinearLayout>
 
@@ -123,8 +177,8 @@
         android:id="@+id/available_parks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/top_banner"
-        android:layout_marginTop="10dp"/>
+        android:layout_below="@+id/header_list_title"
+        />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

@@ -26,7 +26,7 @@ import tomasrodrigues.pt.alticelabs.utils.StringUtils;
  * <p>
  * Created by Tomas on 12/02/2018.
  */
-public class LauncherActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final int SECONDS_DELAYED = 1;
     ArrayList<String> availableIdsCampus = new ArrayList<>();
@@ -35,51 +35,26 @@ public class LauncherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_splash);
 
-        new GetAvailableCampus().execute();
-
-        final Intent showMainActivity = new Intent(this, MainActivity.class);
-
-        new Handler().postDelayed(new Runnable() {
-            public void run() {
-                showMainActivity.putStringArrayListExtra(StringUtils.CAMPUS_ID_KEY, availableIdsCampus);
-                showMainActivity.putStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY, availableNamesCampus);
-                startActivity(showMainActivity);
-
-            }
-        }, SECONDS_DELAYED * 1000);
-    }
-
-    public class GetAvailableCampus extends AsyncTask {
-
-        @Override
-        protected Object doInBackground(Object... arg0) {
-            HttpClient client = new HttpClient();
-            String availableCampus = client.getRequest(HTTPUtils.BASE_URL + HTTPUtils.GET_ZONES);
-            Log.d("availableCampus", availableCampus);
-            try{
-                JSONObject total_records = new JSONObject(availableCampus);
-                JSONArray records = total_records.getJSONArray("records");
-
-                for (int i = 0 ; i < records.length() ; i++){
-                    JSONObject record = records.getJSONObject(i);
-
-                    availableIdsCampus.add(record.getString("id"));
-                    availableNamesCampus.add(record.getString("name"));
-                }
-
-                Log.d("Parsing ids with sucess", availableIdsCampus.get(0));
-
-                new GetAvailableParks().execute();
-
-            }catch (Exception e){
-                Log.e("Error", "Error on parsing campus");
-                e.getMessage();
-            }
-
-            return null;
+        Intent initCampus = getIntent();
+        if(initCampus.hasExtra(StringUtils.CAMPUS_ID_KEY)) {
+            availableIdsCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_ID_KEY);
+            availableNamesCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY);
         }
+
+        new GetAvailableParks().execute();
+
+//        final Intent showMainActivity = new Intent(this, ParkingList.class);
+//
+//        new Handler().postDelayed(new Runnable() {
+//            public void run() {
+//                showMainActivity.putStringArrayListExtra(StringUtils.CAMPUS_ID_KEY, availableIdsCampus);
+//                showMainActivity.putStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY, availableNamesCampus);
+//                startActivity(showMainActivity);
+//
+//            }
+//        }, SECONDS_DELAYED * 1000);
     }
 
     public class GetAvailableParks extends AsyncTask {
