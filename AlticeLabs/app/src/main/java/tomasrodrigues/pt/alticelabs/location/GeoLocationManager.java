@@ -10,8 +10,6 @@ import android.support.annotation.NonNull;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +26,6 @@ import io.reactivex.functions.Predicate;
  */
 public class GeoLocationManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GeoLocationManager.class);
 
     private static final int THIRTY_SECONDS = 1000 * 30;
 
@@ -73,7 +70,6 @@ public class GeoLocationManager {
     }
 
     public void startTracking() {
-        LOGGER.debug("Location tracking started with an interval of {} milliseconds", ONE_MINUTE);
 
         updatesEnabled = true;
         LocationManager manager = getLocationManager();
@@ -87,7 +83,6 @@ public class GeoLocationManager {
     }
 
     public void sleepTracking() {
-        LOGGER.debug("Location tracking sleeping with an interval of {} milliseconds", TEN_MINUTES);
 
         LocationManager manager = getLocationManager();
 
@@ -102,7 +97,6 @@ public class GeoLocationManager {
     }
 
     public void wakeTracking() {
-        LOGGER.debug("Location tracking wake with an interval of {} milliseconds", ONE_MINUTE);
 
         updatesEnabled = false;
         LocationManager manager = getLocationManager();
@@ -118,7 +112,6 @@ public class GeoLocationManager {
     }
 
     public void stopTracking() {
-        LOGGER.debug("Location tracking stopped");
 
         LocationManager manager = getLocationManager();
 
@@ -144,7 +137,6 @@ public class GeoLocationManager {
     }
 
     void onLocationChanged(Location location) {
-//        LOGGER.debug("Location changed: {}", location.toString());
 
         if (isBetterLocation(location, lastKnownLocation)) {
             this.lastKnownLocation = location;
@@ -152,7 +144,6 @@ public class GeoLocationManager {
     }
 
     void onProviderEnabled(String provider) {
-        LOGGER.debug("Provider enabled: [{}]", provider);
 
         if (updatesEnabled) {
             addProvider(getLocationManager(), provider);
@@ -160,7 +151,6 @@ public class GeoLocationManager {
     }
 
     void onProviderDisabled(String provider) {
-        LOGGER.debug("Provider disabled: [{}]", provider);
 
         if (updatesEnabled) {
             removeProvider(getLocationManager(), provider);

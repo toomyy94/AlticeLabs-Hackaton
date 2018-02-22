@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">AlticeLabs</string>
     <string name="title_activity_parking_map">ParkingMap</string>
+    <string name="title_activity_parking_list">ParkingList</string>
     <string name="title_launcher_activity">LauncherActivity</string>
 
     <string-array name="campus_array">
