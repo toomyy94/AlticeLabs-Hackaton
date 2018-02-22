@@ -53,7 +53,7 @@ public class DateUtils {
             return "";
         }
 
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd HH:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         String format = formatter.format(date);
         return Strings.nullToEmpty(format);
     }

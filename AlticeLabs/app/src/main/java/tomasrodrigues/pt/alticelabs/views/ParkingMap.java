@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -26,10 +29,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import tomasrodrigues.pt.alticelabs.R;
+import tomasrodrigues.pt.alticelabs.http.client.HttpClient;
 import tomasrodrigues.pt.alticelabs.parking.ParkingPlace;
+import tomasrodrigues.pt.alticelabs.utils.DateUtils;
+import tomasrodrigues.pt.alticelabs.utils.HTTPUtils;
 import tomasrodrigues.pt.alticelabs.utils.StringUtils;
 
 public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
@@ -40,6 +51,7 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 
     ArrayList<String> availableIdsCampus = new ArrayList<>();
     ArrayList<String> availableNamesCampus = new ArrayList<>();
+//    public static ArrayList<ParkingPlace> parkingPlaces = new ArrayList<>();
 
     //Fill AlticeLabs Center & bounds
     public static final LatLng alticeLabsCenter = new LatLng(40.629789, -8.646458);
@@ -50,18 +62,16 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
     private Spinner campusSpinner;
     private TextView text_numberFreePublic;
-    private TextView text_numberReservedPublic;
+    private TextView text_numberFreeReserved;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_map);
 
+        campusSpinner =  findViewById(R.id.campus_spinner);
         text_numberFreePublic = findViewById(R.id.number_free_public);
-        text_numberReservedPublic = findViewById(R.id.number_free_reserved);
-
-        text_numberFreePublic.setText(ParkingList.text_numberFreePublic.getText());
-        text_numberReservedPublic.setText(ParkingList.text_numberFreeReserved.getText());
+        text_numberFreeReserved = findViewById(R.id.number_free_reserved);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -73,6 +83,8 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         if(initCampus.hasExtra(StringUtils.CAMPUS_NAME_KEY)){
             availableIdsCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_ID_KEY);
             availableNamesCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY);
+            text_numberFreePublic.setText(""+ initCampus.getIntExtra(StringUtils.PUBLIC_FREE_KEY, 0));
+            text_numberFreeReserved.setText(""+ initCampus.getIntExtra(StringUtils.RESERVED_FREE_KEY, 0));
         }
 
         //Floating button
@@ -87,8 +99,6 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
                 startActivity(showParkingList);
             }
         });
-
-        campusSpinner =  findViewById(R.id.campus_spinner);
 
         // Create an ArrayAdapter using the string array and a default spinner layout
 //        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
@@ -177,7 +187,7 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         private final static int CAMPUS_SFR = 2;
 
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            Log.d("Item selecionado", ""+position);
+            Log.d("Map: Item selecionado", ""+position);
             switch (position){
                 case CAMPUS_ALTICE_LABS:
                     goToCampus(alticeLabsCenter);
@@ -229,50 +239,51 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
-    public static ParkingPlace[] alticeLabsParkingPlaces = {
-            //frente do edificio 0
-            new ParkingPlace(new LatLng(40.629144, -8.646928), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629168, -8.646922), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629191, -8.646924), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629213, -8.646927), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629236, -8.646933), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629259, -8.646934), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629281, -8.646938), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629302, -8.646941), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629324, -8.646947), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629346, -8.646950), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629369, -8.646953), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629389, -8.646953), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629413, -8.646954), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629434, -8.646961), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629458, -8.646961), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629479, -8.646965), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629469, -8.646839), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629447, -8.646831), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629424, -8.646828), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629403, -8.646823), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629376, -8.646817), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629357, -8.646816), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629336, -8.646808), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629313, -8.646805), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629292, -8.646803), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629269, -8.646799), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629246, -8.646796), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629225, -8.646792), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629203, -8.646789), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629181, -8.646785), st.OCCUPIED, st.RESERVED, -7),
-            new ParkingPlace(new LatLng(40.629158, -8.646777), st.OCCUPIED, st.RESERVED, -7),
-
-            //em frente do jardim em frente ao edificio 0
-            //TODO: ...
-    };
+//    public static ParkingPlace[] alticeLabsParkingPlaces = {
+//            //frente do edificio 0
+//            new ParkingPlace(new LatLng(40.629144, -8.646928), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629168, -8.646922), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629191, -8.646924), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629213, -8.646927), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629236, -8.646933), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629259, -8.646934), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629281, -8.646938), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629302, -8.646941), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629324, -8.646947), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629346, -8.646950), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629369, -8.646953), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629389, -8.646953), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629413, -8.646954), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629434, -8.646961), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629458, -8.646961), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629479, -8.646965), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629469, -8.646839), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629447, -8.646831), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629424, -8.646828), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629403, -8.646823), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629376, -8.646817), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629357, -8.646816), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629336, -8.646808), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629313, -8.646805), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629292, -8.646803), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629269, -8.646799), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629246, -8.646796), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629225, -8.646792), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629203, -8.646789), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629181, -8.646785), st.OCCUPIED, st.RESERVED, -7),
+//            new ParkingPlace(new LatLng(40.629158, -8.646777), st.OCCUPIED, st.RESERVED, -7),
+//
+//            //em frente do jardim em frente ao edificio 0
+//            //TODO: ...
+//    };
 
 //    public void updateParkingPlaces() {
 //
-//        final Handler handler = new Handler();
+//        final Handler handler = new Handler(Looper.getMainLooper());
 //        Timer timer = new Timer();
 //
 //        TimerTask doAsynchronousTask = new TimerTask() {
+//
 //            @Override
 //            public void run() {
 //                handler.post(new Runnable() {
@@ -282,27 +293,25 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 //                            //TOP BANNER
 //                            int numberFreePublic = 0;
 //                            int numberFreeReserved = 0;
-//                            for (int i = 0; i < parkingPlaces.size(); i++) {
-//                                if (parkingPlaces.get(i).isFree() && parkingPlaces.get(i).isReserved())
+//                            for (int i = 0; i < ParkingList.parkingPlaces.size(); i++) {
+//                                if (ParkingList.parkingPlaces.get(i).isFree() && ParkingList.parkingPlaces.get(i).isReserved())
 //                                    numberFreeReserved++;
-//                                else if (parkingPlaces.get(i).isFree()) numberFreePublic++;
+//                                else if (ParkingList.parkingPlaces.get(i).isFree()) numberFreePublic++;
 //                            }
-//                            text_numberFreePublic.setText(String.valueOf(numberFreePublic));
-//                            text_numberReservedPublic.setText(String.valueOf(numberFreeReserved));
 //
-//                            //LIST
-//                            adapter = new ParkingListAdapter(parkingPlaces, getApplicationContext());
-//                            listView.setAdapter(adapter);
+//                            text_numberFreePublic.setText(""+numberFreePublic);
+//                            text_numberFreeReserved.setText(""+numberFreeReserved);
 //
-//                            Log.d("atualizei", "atualizei");
+//                            addInitialParkingPlaces();
+//
+//                            Log.d("ParkingMap", "atualizei");
 //                        } catch (Exception e) {
 //                            // TODO Auto-generated catch block
 //                            e.printStackTrace();
 //                        }
 //                    }
 //                });
-//            }
-//        };
+//            }};
 //        timer.schedule(doAsynchronousTask, 0,
 //                DateUtils.SECONDS_PERIOD * DateUtils.MILI_TO_SECOND); //execute in every xxxxx ms
 //    }
@@ -314,10 +323,9 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 //        protected Object doInBackground(Object... arg0) {
 //            HttpClient client = new HttpClient();
 //            String availableParks = client.getRequest(HTTPUtils.BASE_URL + HTTPUtils.GET_LUGARES_FROM_ZONE + availableIdsCampus.get(campusSpinner.getSelectedItemPosition()));
-//            Log.d("availableParks", availableParks);
 //            try{
 //                //para a lista
-//                parkingPlaces.clear();
+//                ParkingList.parkingPlaces.clear();
 //
 //                JSONObject total_records = new JSONObject(availableParks);
 //                JSONArray records = total_records.getJSONArray("records");
@@ -343,11 +351,12 @@ public class ParkingMap extends FragmentActivity implements OnMapReadyCallback {
 //                    }
 //                    else pPlace.setFree(false);
 //
-//                    parkingPlaces.add(pPlace);
+//                    ParkingList.parkingPlaces.add(pPlace);
 //                }
+//                firstTime = false;
 //
 //            }catch (Exception e){
-//                Log.e("Error", "Parsing parks"+ e.getMessage());
+//                Log.e("Error", "Parsing parks "+ e.getMessage());
 //
 //            }
 //

@@ -49,8 +49,8 @@ public class ParkingList extends FragmentActivity {
     public final static int CAMPUS_POLO_PORTO = 1;
     public final static int CAMPUS_SFR = 2;
 
-    ArrayList<String> availableIdsCampus = new ArrayList<>();
-    ArrayList<String> availableNamesCampus = new ArrayList<>();
+    public static ArrayList<String> availableIdsCampus = new ArrayList<>();
+    public static ArrayList<String> availableNamesCampus = new ArrayList<>();
     long lastTimestampPark = 0L;
 
 //    ParkingPlace[] parkingPlaces = ParkingMap.alticeLabsParkingPlaces;
@@ -58,10 +58,13 @@ public class ParkingList extends FragmentActivity {
     private ParkingListAdapter adapter;
     ListView listView;
 
-    Spinner campusSpinner;
+    public static Spinner campusSpinner;
     public static TextView text_numberFreePublic;
     public static TextView text_numberFreeReserved;
     public static ImageView car_icon;
+
+    public static int p_free;
+    public static int r_free;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,19 +76,12 @@ public class ParkingList extends FragmentActivity {
         car_icon = findViewById(R.id.item_icon);
         campusSpinner =  findViewById(R.id.campus_spinner);
         listView = findViewById(R.id.available_parks);
+        campusSpinner.setOnItemSelectedListener(new mySpinnerListener());
 
         Intent initCampus = getIntent();
         if(initCampus.hasExtra(StringUtils.CAMPUS_ID_KEY)){
             availableIdsCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_ID_KEY);
             availableNamesCampus = initCampus.getStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY);
-        }
-        else if(initCampus.hasExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY)){
-            availableNamesCampus = initCampus.getStringArrayListExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY);
-        }
-
-        Intent intent = getIntent();
-        if (intent.hasExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY)) {
-            campusSpinner.setSelection(intent.getIntExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, 0));
         }
 
         //Campus
@@ -97,7 +93,6 @@ public class ParkingList extends FragmentActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         campusSpinner.setAdapter(spinnerAdapter);
-        campusSpinner.setOnItemSelectedListener(new mySpinnerListener());
 
         //List
         adapter = new ParkingListAdapter(parkingPlaces, getApplicationContext());
@@ -116,11 +111,13 @@ public class ParkingList extends FragmentActivity {
 
                                 final Intent showParkingMap = new Intent(view.getContext(), ParkingMap.class);
 
+                                showParkingMap.putExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, campusSpinner.getSelectedItemPosition());
                                 showParkingMap.putStringArrayListExtra(StringUtils.CAMPUS_ID_KEY, availableIdsCampus);
                                 showParkingMap.putStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY, availableNamesCampus);
-                                showParkingMap.putExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, campusSpinner.getSelectedItemPosition());
                                 showParkingMap.putExtra(StringUtils.LAT_KEY, parkingPlace.getGeo().latitude);
                                 showParkingMap.putExtra(StringUtils.LNG_KEY, parkingPlace.getGeo().longitude);
+                                showParkingMap.putExtra(StringUtils.PUBLIC_FREE_KEY, p_free);
+                                showParkingMap.putExtra(StringUtils.RESERVED_FREE_KEY, r_free);
 
                                 startActivity(showParkingMap);
                             }
@@ -130,6 +127,10 @@ public class ParkingList extends FragmentActivity {
             }
         });
 
+        if(initCampus.hasExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY)){
+            campusSpinner.setSelection(initCampus.getIntExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, 0));
+            Log.d("Set campusSpinner", ""+initCampus.getIntExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, 0));
+        }
         updateParkingPlaces();
 
         //Floating button
@@ -141,6 +142,8 @@ public class ParkingList extends FragmentActivity {
                 showParkingMap.putExtra(StringUtils.SELECTED_SPINNER_CAMPUS_KEY, campusSpinner.getSelectedItemPosition());
                 showParkingMap.putStringArrayListExtra(StringUtils.CAMPUS_ID_KEY, availableIdsCampus);
                 showParkingMap.putStringArrayListExtra(StringUtils.CAMPUS_NAME_KEY, availableNamesCampus);
+                showParkingMap.putExtra(StringUtils.PUBLIC_FREE_KEY, p_free);
+                showParkingMap.putExtra(StringUtils.RESERVED_FREE_KEY, r_free);
                 startActivity(showParkingMap);
             }
         });
@@ -150,16 +153,20 @@ public class ParkingList extends FragmentActivity {
 
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-            Log.d("item selecionado", "item selecionado");
+            Log.d("List 2: selecionado", ""+position);
 
             switch (position){
                 case CAMPUS_ALTICE_LABS:
+                    new GetAvailableParks().execute();
                     break;
                 case CAMPUS_POLO_PORTO:
+                    new GetAvailableParks().execute();
                     break;
                 case CAMPUS_SFR:
+                    new GetAvailableParks().execute();
                     break;
                 default:
+                    new GetAvailableParks().execute();
                     break;
             }
         }
@@ -193,21 +200,24 @@ public class ParkingList extends FragmentActivity {
                         try {
                             new GetAvailableParks().execute();
                             //TOP BANNER
-                            int numberFreePublic = 0;
-                            int numberFreeReserved = 0;
+                            int tmp_numberFreePublic = 0;
+                            int tmp_numberFreeReserved = 0;
                             for (int i = 0; i < parkingPlaces.size(); i++) {
                                 if (parkingPlaces.get(i).isFree() && parkingPlaces.get(i).isReserved())
-                                    numberFreeReserved++;
-                                else if (parkingPlaces.get(i).isFree()) numberFreePublic++;
+                                    tmp_numberFreeReserved++;
+                                else if (parkingPlaces.get(i).isFree()) tmp_numberFreePublic++;
                             }
 
-                            text_numberFreePublic.setText(String.valueOf(numberFreePublic));
-                            text_numberFreeReserved.setText(String.valueOf(numberFreeReserved));
+                            p_free = tmp_numberFreePublic;
+                            r_free = tmp_numberFreeReserved;
+
+                            text_numberFreePublic.setText(String.valueOf(tmp_numberFreePublic));
+                            text_numberFreeReserved.setText(String.valueOf(tmp_numberFreeReserved));
 
                             //LIST
                             adapter.notifyDataSetChanged();
 
-                            Log.d("atualizei", "atualizei");
+                            Log.d("ParkingList", "atualizei");
                         } catch (Exception e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -226,7 +236,7 @@ public class ParkingList extends FragmentActivity {
         protected Object doInBackground(Object... arg0) {
             HttpClient client = new HttpClient();
             String availableParks = client.getRequest(HTTPUtils.BASE_URL + HTTPUtils.GET_LUGARES_FROM_ZONE + availableIdsCampus.get(campusSpinner.getSelectedItemPosition()));
-            Log.d("availableParks", availableParks);
+            Log.d("List1: selecionado ", ""+campusSpinner.getSelectedItemPosition());
             try{
                 //para a lista
                 parkingPlaces.clear();

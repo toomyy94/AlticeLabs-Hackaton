@@ -8,9 +8,14 @@ public class StringUtils {
     //Strings
     public static final String CAMPUS_ID_KEY = "campus_id";
     public static final String CAMPUS_NAME_KEY = "campus_name";
+
     public final static String SELECTED_SPINNER_CAMPUS_KEY = "campus";
+
     public final static String LAT_KEY = "lat";
     public final static String LNG_KEY = "lng";
+
+    public final static String PUBLIC_FREE_KEY = "p_free";
+    public final static String RESERVED_FREE_KEY = "r_free";
 
     public final static boolean FREE = true;
     public final static boolean OCCUPIED = false;

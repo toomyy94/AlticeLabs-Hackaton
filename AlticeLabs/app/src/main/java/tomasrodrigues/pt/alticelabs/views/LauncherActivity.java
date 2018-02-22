@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -35,7 +36,7 @@ public class LauncherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_splash);
 
         new GetAvailableCampus().execute();
 
@@ -48,7 +49,7 @@ public class LauncherActivity extends AppCompatActivity {
                 startActivity(showMainActivity);
 
             }
-        }, SECONDS_DELAYED * 1000);
+        }, SECONDS_DELAYED * 1500);
     }
 
     public class GetAvailableCampus extends AsyncTask {
@@ -122,6 +123,8 @@ public class LauncherActivity extends AppCompatActivity {
 
             }catch (Exception e){
                 Log.e("Error", "Parsing parks"+ e.getMessage());
+                SystemClock.sleep(500);
+                new GetAvailableParks().execute();
 
             }
 

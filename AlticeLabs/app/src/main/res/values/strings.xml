@@ -4,6 +4,7 @@
     <string name="title_activity_parking_list">ParkingList</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_launcher_activity">LauncherActivity</string>
+    <string name="copyright">© 2018 Altice Labs, S.A. Todos os direitos reservados.</string>
 
     <string-array name="campus_array">
         <item>Altice Labs</item>
